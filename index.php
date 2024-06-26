@@ -6,8 +6,24 @@ $db->exec('CREATE TABLE IF NOT EXISTS posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
     message TEXT NOT NULL,
-    media TEXT
+    media TEXT,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )');
+
+$db->exec('CREATE TABLE IF NOT EXISTS replies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL,
+    message TEXT NOT NULL,
+    FOREIGN KEY(post_id) REFERENCES posts(id)
+)');
+
+$db->exec('CREATE TRIGGER IF NOT EXISTS update_timestamp
+           AFTER UPDATE ON posts
+           FOR EACH ROW
+           WHEN NEW.updated_at <= OLD.updated_at
+           BEGIN
+               UPDATE posts SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+           END');
 
 $uploadsDir = 'uploads/';
 
@@ -30,7 +46,15 @@ function getUniqueFilename($directory, $filename) {
     return $newFilename;
 }
 
+function getReplyCount($post_id) {
+    global $db;
+    $result = $db->query("SELECT COUNT(*) as count FROM replies WHERE post_id = $post_id");
+    $row = $result->fetchArray(SQLITE3_ASSOC);
+    return $row['count'];
+}
+
 function renderPost($id, $title, $message, $mediaPath) {
+    $replyCount = getReplyCount($id);
     $mediaTag = '';
     if ($mediaPath) {
         $fileType = mime_content_type($mediaPath);
@@ -46,7 +70,8 @@ function renderPost($id, $title, $message, $mediaPath) {
             <hr class="green-hr">
             <div class="post-media-container">' . $mediaTag . '</div>
             <h2>' . htmlentities($title) . '</h2>
-            <p>' . nl2br(htmlentities($message)) . '</p>
+            <p style="word-wrap: break-word; overflow-wrap: break-word;">' . nl2br(htmlentities($message)) . '</p>
+            <a class="reply-button" href="reply.php?post_id=' . $id . '">[reply-' . $replyCount . ']</a>
         </div>
     ';
 }
@@ -119,6 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 10px;
             background: #E0E0E0; /* Grey background for individual posts */
             border-radius: 5px;
+            position: relative;
         }
         .green-hr {
             border: 5px solid green;
@@ -169,6 +195,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: red;
             display: none; /* Hide the close button initially */
         }
+        .reply-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: blue;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
@@ -187,7 +225,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <div id="posts">
             <?php
-            $result = $db->query('SELECT * FROM posts ORDER BY id DESC');
+            $result = $db->query('SELECT * FROM posts ORDER BY updated_at DESC');
             while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                 echo renderPost($row['id'], $row['title'], $row['message'], $row['media']);
             }
