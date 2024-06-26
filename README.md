@@ -1,4 +1,4 @@
-Yotsuba-  Modern php 8.3.8 imageboard in one simple file. 
+Yotsuba-  Modern php 8.3.8 imageboard. 
 
 I only make very simple things with PHP- because anything complicated should be made with Rust or Go. Nevertheless, this simple php script is a gem. It is currently all into one file, super easy to feed to chatgpt and tell it what you want changed. For production use, simply tell chat gpt to make CSRF tokens and make sure input is properly sanitized for security. I only f/w the latest version of php. Anything older is just stupid. So do not expect this to work on earlier versions. 
 
