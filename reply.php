@@ -1,5 +1,5 @@
 <?php
-// Setup SQLite3 database and uploads directory
+session_start();
 $db = new SQLite3('message_board.db');
 
 function renderPost($id, $title, $message, $mediaPath) {
@@ -30,9 +30,14 @@ function renderReply($message, $index) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $post_id = filter_input(INPUT_POST, 'post_id', FILTER_SANITIZE_NUMBER_INT);
     $message = filter_input(INPUT_POST, 'message', FILTER_SANITIZE_STRING);
+    $captcha = filter_input(INPUT_POST, 'captcha', FILTER_SANITIZE_STRING);
 
     if (empty($message)) {
         die('Reply message is required.');
+    }
+
+    if (empty($captcha) || $captcha !== $_SESSION['captcha_text']) {
+        die('Invalid CAPTCHA.');
     }
 
     $stmt = $db->prepare('INSERT INTO replies (post_id, message) VALUES (:post_id, :message)');
@@ -107,7 +112,7 @@ $replies = $db->query('SELECT * FROM replies WHERE post_id = ' . $post_id . ' OR
             background: #D0D0D0; /* Slightly darker grey for replies */
             border-radius: 5px;
         }
-        form textarea, form button {
+        form textarea, form button, form input[type="text"] {
             width: 100%;
             margin-bottom: 10px;
         }
@@ -139,6 +144,8 @@ $replies = $db->query('SELECT * FROM replies WHERE post_id = ' . $post_id . ' OR
         <form method="post">
             <input type="hidden" name="post_id" value="<?php echo $post_id; ?>">
             <textarea name="message" placeholder="Reply message" required></textarea><br>
+            <img src="simple_captcha.php" alt="CAPTCHA Image"><br>
+            <input type="text" name="captcha" placeholder="Enter CAPTCHA" required><br>
             <button type="submit">Post Reply</button>
         </form>
         <?php

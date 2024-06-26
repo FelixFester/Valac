@@ -1,7 +1,8 @@
 <?php
-// Setup SQLite3 database and uploads directory
+session_start();
 $db = new SQLite3('message_board.db');
 
+// Create posts table if it doesn't exist
 $db->exec('CREATE TABLE IF NOT EXISTS posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
@@ -10,6 +11,7 @@ $db->exec('CREATE TABLE IF NOT EXISTS posts (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 )');
 
+// Create replies table if it doesn't exist
 $db->exec('CREATE TABLE IF NOT EXISTS replies (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     post_id INTEGER NOT NULL,
@@ -17,6 +19,7 @@ $db->exec('CREATE TABLE IF NOT EXISTS replies (
     FOREIGN KEY(post_id) REFERENCES posts(id)
 )');
 
+// Create trigger to update timestamp on post update
 $db->exec('CREATE TRIGGER IF NOT EXISTS update_timestamp
            AFTER UPDATE ON posts
            FOR EACH ROW
@@ -80,9 +83,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = filter_input(INPUT_POST, 'title', FILTER_SANITIZE_STRING);
     $message = filter_input(INPUT_POST, 'message', FILTER_SANITIZE_STRING);
     $media = $_FILES['media'];
+    $captcha = filter_input(INPUT_POST, 'captcha', FILTER_SANITIZE_STRING);
 
     if (empty($title) || empty($message)) {
         die('Title and message are required.');
+    }
+
+    if (empty($captcha) || $captcha !== $_SESSION['captcha_text']) {
+        die('Invalid CAPTCHA.');
     }
 
     $mediaPath = '';
@@ -96,11 +104,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bindValue(':title', $title, SQLITE3_TEXT);
     $stmt->bindValue(':message', $message, SQLITE3_TEXT);
     $stmt->bindValue(':media', $mediaPath, SQLITE3_TEXT);
-    $stmt->execute();
+    $result = $stmt->execute();
+
+    if ($result) {
+        echo "<p>Post inserted successfully.</p>";
+    } else {
+        echo "<p>Failed to insert post.</p>";
+    }
 
     echo renderPost($db->lastInsertRowID(), $title, $message, $mediaPath);
     exit;
 }
+
+// Pagination
+$postsPerPage = 10;
+$totalPosts = $db->querySingle('SELECT COUNT(*) FROM posts');
+$totalPages = ceil($totalPosts / $postsPerPage);
+$page = filter_input(INPUT_GET, 'page', FILTER_SANITIZE_NUMBER_INT) ?: 1;
+$offset = ($page - 1) * $postsPerPage;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -164,7 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             width: 100%;
             height: auto;
         }
-        form input[type="text"], form textarea, form input[type="file"], form button {
+        form input[type="text"], form textarea, form input[type="file"], form input[type="text"], form button {
             width: 100%;
             margin-bottom: 10px;
         }
@@ -207,6 +228,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             cursor: pointer;
             text-decoration: none;
         }
+        .pagination {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .pagination a {
+            margin: 0 5px;
+            padding: 10px 15px;
+            background: #ddd;
+            color: #000;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .pagination a.active {
+            background: #333;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -220,16 +257,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="text" name="title" placeholder="Title" maxlength="20" required><br>
                 <textarea name="message" placeholder="Message" maxlength="100000" required></textarea><br>
                 <input type="file" name="media" accept="image/jpeg, image/png, image/gif, image/webp, video/webm, video/mp4"><br>
+                <img src="simple_captcha.php" alt="CAPTCHA Image"><br>
+                <input type="text" name="captcha" placeholder="Enter CAPTCHA" required><br>
                 <button type="submit">Post</button>
             </form>
         </div>
         <div id="posts">
             <?php
-            $result = $db->query('SELECT * FROM posts ORDER BY updated_at DESC');
+            $result = $db->query("SELECT * FROM posts ORDER BY updated_at DESC LIMIT $postsPerPage OFFSET $offset");
             while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
                 echo renderPost($row['id'], $row['title'], $row['message'], $row['media']);
             }
             ?>
+        </div>
+        <div class="pagination">
+            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                <a href="?page=<?php echo $i; ?>" class="<?php echo ($i == $page) ? 'active' : ''; ?>"><?php echo $i; ?></a>
+            <?php endfor; ?>
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
