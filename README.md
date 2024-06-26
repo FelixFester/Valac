@@ -30,3 +30,5 @@ File Handling: The script includes functionality for handling file uploads and e
 Form Handling and Validation: The script uses PHP’s built-in functions for handling and validating form input, leveraging the latest improvements in PHP 8.3.8.
 Session Management: Although not explicitly used in the script, PHP 8.3.8 includes enhanced session management features that can be easily integrated if needed.
 Overall, the script is designed to work efficiently with PHP 8.3.8, ensuring compatibility with the latest features and performance enhancements offered by this version. 
+
+implemented captcha system + mod area. 
