@@ -32,3 +32,26 @@ Session Management: Although not explicitly used in the script, PHP 8.3.8 includ
 Overall, the script is designed to work efficiently with PHP 8.3.8, ensuring compatibility with the latest features and performance enhancements offered by this version. 
 
 implemented captcha system + mod area. 
+
+Implemented CSRF protection with tokens.
+Added secure session management practices.
+Enhanced input validation and sanitization.
+Implemented secure file upload checks.
+Added a Content Security Policy (CSP) header to improve security.
+These changes enhance the security of this PHP application by implementing best practices for session management, input validation, CSRF protection, and more.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
