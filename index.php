@@ -1,5 +1,17 @@
 <?php
-session_start();
+session_start([
+    'cookie_lifetime' => 86400,
+    'cookie_httponly' => true,
+    'cookie_secure' => true,
+    'cookie_samesite' => 'Strict',
+]);
+
+// Regenerate session ID to prevent session fixation
+if (!isset($_SESSION['initiated'])) {
+    session_regenerate_id(true);
+    $_SESSION['initiated'] = true;
+}
+
 $db = new SQLite3('message_board.db');
 
 // Create posts table if it doesn't exist
@@ -79,11 +91,28 @@ function renderPost($id, $title, $message, $mediaPath) {
     ';
 }
 
+function generateCsrfToken() {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+function validateCsrfToken($token) {
+    return $token === $_SESSION['csrf_token'];
+}
+
+$csrf_token = generateCsrfToken();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = filter_input(INPUT_POST, 'title', FILTER_SANITIZE_STRING);
     $message = filter_input(INPUT_POST, 'message', FILTER_SANITIZE_STRING);
-    $media = $_FILES['media'];
     $captcha = filter_input(INPUT_POST, 'captcha', FILTER_SANITIZE_STRING);
+    $csrf_token_post = filter_input(INPUT_POST, 'csrf_token', FILTER_SANITIZE_STRING);
+
+    if (!validateCsrfToken($csrf_token_post)) {
+        die('Invalid CSRF token');
+    }
 
     if (empty($title) || empty($message)) {
         die('Title and message are required.');
@@ -91,6 +120,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($captcha) || $captcha !== $_SESSION['captcha_text']) {
         die('Invalid CAPTCHA.');
+    }
+
+    $media = $_FILES['media'];
+    $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/webm', 'video/mp4'];
+    if ($media['size'] > 0 && !in_array($media['type'], $allowed_types)) {
+        die('Invalid file type');
+    }
+
+    if ($media['size'] > 5 * 1024 * 1024) {
+        die('File too large');
     }
 
     $mediaPath = '';
@@ -254,6 +293,7 @@ $offset = ($page - 1) * $postsPerPage;
         </div>
         <div class="form-container">
             <form id="postForm" enctype="multipart/form-data" method="post">
+                <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
                 <input type="text" name="title" placeholder="Title" maxlength="20" required><br>
                 <textarea name="message" placeholder="Message" maxlength="100000" required></textarea><br>
                 <input type="file" name="media" accept="image/jpeg, image/png, image/gif, image/webp, video/webm, video/mp4"><br>

@@ -1,5 +1,17 @@
 <?php
-session_start();
+session_start([
+    'cookie_lifetime' => 86400,
+    'cookie_httponly' => true,
+    'cookie_secure' => true,
+    'cookie_samesite' => 'Strict',
+]);
+
+// Regenerate session ID to prevent session fixation
+if (!isset($_SESSION['initiated'])) {
+    session_regenerate_id(true);
+    $_SESSION['initiated'] = true;
+}
+
 $db = new SQLite3('message_board.db');
 
 function renderPost($id, $title, $message, $mediaPath) {
@@ -27,10 +39,28 @@ function renderReply($message, $index) {
     return '<div class="reply"><p><strong>Reply ' . $index . ':</strong> ' . nl2br(htmlentities($message)) . '</p></div>';
 }
 
+function generateCsrfToken() {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+function validateCsrfToken($token) {
+    return $token === $_SESSION['csrf_token'];
+}
+
+$csrf_token = generateCsrfToken();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $post_id = filter_input(INPUT_POST, 'post_id', FILTER_SANITIZE_NUMBER_INT);
     $message = filter_input(INPUT_POST, 'message', FILTER_SANITIZE_STRING);
     $captcha = filter_input(INPUT_POST, 'captcha', FILTER_SANITIZE_STRING);
+    $csrf_token_post = filter_input(INPUT_POST, 'csrf_token', FILTER_SANITIZE_STRING);
+
+    if (!validateCsrfToken($csrf_token_post)) {
+        die('Invalid CSRF token');
+    }
 
     if (empty($message)) {
         die('Reply message is required.');
@@ -143,6 +173,7 @@ $replies = $db->query('SELECT * FROM replies WHERE post_id = ' . $post_id . ' OR
         ?>
         <form method="post">
             <input type="hidden" name="post_id" value="<?php echo $post_id; ?>">
+            <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
             <textarea name="message" placeholder="Reply message" required></textarea><br>
             <img src="simple_captcha.php" alt="CAPTCHA Image"><br>
             <input type="text" name="captcha" placeholder="Enter CAPTCHA" required><br>

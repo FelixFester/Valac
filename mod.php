@@ -1,13 +1,24 @@
 <?php
 // Start the session
-session_start();
+session_start([
+    'cookie_lifetime' => 86400,
+    'cookie_httponly' => true,
+    'cookie_secure' => true,
+    'cookie_samesite' => 'Strict',
+]);
+
+// Regenerate session ID to prevent session fixation
+if (!isset($_SESSION['initiated'])) {
+    session_regenerate_id(true);
+    $_SESSION['initiated'] = true;
+}
 
 // Hashed password for moderator access
 define('MODERATOR_PASSWORD_HASH', 'your_hashed_password_here');
 
 // Check if the user is logged in as a moderator
 if (isset($_POST['password'])) {
-    if (password_verify($_POST['password'], '$2y$10$11RgzmLvknEDDJSNQ9TLoOkqp8zuSN5Dw9LBV26PTuuaNIC8c0Z/m')) {
+    if (password_verify($_POST['password'], MODERATOR_PASSWORD_HASH)) {
         $_SESSION['is_moderator'] = true;
     } else {
         echo '<p style="color: red;">Incorrect password.</p>';
@@ -55,7 +66,7 @@ if (isset($_POST['delete_post_id'])) {
 if (isset($_POST['delete_reply_id'])) {
     $reply_id = filter_input(INPUT_POST, 'delete_reply_id', FILTER_SANITIZE_NUMBER_INT);
     $stmt = $db->prepare('UPDATE replies SET message = :message WHERE id = :id');
-    $stmt->bindValue(':message', 'Post Deleted By Moderator', SQLITE3_TEXT);
+    $stmt->bindValue(':message', 'Reply Deleted By Moderator', SQLITE3_TEXT);
     $stmt->bindValue(':id', $reply_id, SQLITE3_INTEGER);
     $stmt->execute();
 }
