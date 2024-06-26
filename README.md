@@ -11,3 +11,5 @@ Each post is displayed with a grey background to distinguish individual entries.
 Additionally, the script includes a responsive design that ensures the message board uses most of the screen width while maintaining a small margin for better aesthetics. This design choice ensures that the content is easily readable on devices of various screen sizes, from mobile phones to desktops. The combination of PHP, SQLite3, jQuery, and AJAX provides a robust backend for handling form submissions, media uploads, and data storage, while ensuring a smooth and interactive front-end user experience.
 
 This script is ideal for creating a community-driven platform where users can share detailed articles and posts enriched with multimedia content, making it perfect for applications like chess articles, where users might want to include annotated images and videos. The intuitive interface and seamless interactions ensure that users can focus on creating and sharing content without being bogged down by technical complexities.
+
+Reply function is now implemented. 
