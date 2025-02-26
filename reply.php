@@ -1,4 +1,5 @@
 <?php
+
 session_start([
     'cookie_lifetime' => 86400,
     'cookie_httponly' => true,
@@ -12,7 +13,7 @@ if (!isset($_SESSION['initiated'])) {
     $_SESSION['initiated'] = true;
 }
 
-$db = new SQLite3('message_board.db');
+$db = new SQLite3('posts.db');
 
 function renderPost($id, $title, $message, $mediaPath) {
     $mediaTag = '';
@@ -25,18 +26,24 @@ function renderPost($id, $title, $message, $mediaPath) {
         }
     }
 
+    // Decode HTML entities in title and message
+    $decodedTitle = html_entity_decode($title, ENT_QUOTES, 'UTF-8');
+    $decodedMessage = html_entity_decode($message, ENT_QUOTES, 'UTF-8');
+
     return '
         <div class="post">
             <hr class="green-hr">
             <div class="post-media-container">' . $mediaTag . '</div>
-            <h2>' . htmlentities($title) . '</h2>
-            <p style="word-wrap: break-word;">' . nl2br(htmlentities($message)) . '</p>
+            <h2>' . htmlspecialchars($decodedTitle) . '</h2>
+            <p style="word-wrap: break-word;">' . nl2br(htmlspecialchars($decodedMessage)) . '</p>
         </div>
     ';
 }
 
 function renderReply($message, $index) {
-    return '<div class="reply"><p><strong>Reply ' . $index . ':</strong> ' . nl2br(htmlentities($message)) . '</p></div>';
+    // Decode HTML entities in the reply message
+    $decodedMessage = html_entity_decode($message, ENT_QUOTES, 'UTF-8');
+    return '<div class="reply"><p><strong>Reply ' . $index . ':</strong> ' . nl2br(htmlspecialchars($decodedMessage)) . '</p></div>';
 }
 
 function generateCsrfToken() {
@@ -101,69 +108,34 @@ $replies = $db->query('SELECT * FROM replies WHERE post_id = ' . $post_id . ' OR
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reply to Post</title>
-    <style>
-        /* Add basic styling here */
-        body {
-            background-color: #B0C4DE; /* Darker blue shade */
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
+<?php
+$themesDir = "themes/";
+$themes = array_diff(scandir($themesDir), array('..', '.'));
+?>
+
+<!-- Apply selected theme -->
+<link id="themeStylesheet" rel="stylesheet" type="text/css" href="themes/Clara Valac.css">
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const themeSelect = document.getElementById("themeSelect");
+        const themeStylesheet = document.getElementById("themeStylesheet");
+
+        // Load theme from cookies
+        const savedTheme = document.cookie.replace(/(?:(?:^|.*;\s*)selectedTheme\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+        if (savedTheme) {
+            themeStylesheet.href = "themes/" + savedTheme;
+            themeSelect.value = savedTheme;
         }
-        .message-board {
-            width: 90%;
-            max-width: 800px;
-            margin: auto;
-            padding: 20px;
-            background: #F0F0F0; /* Light grey background for posts */
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .post {
-            margin-bottom: 20px;
-            padding: 10px;
-            background: #E0E0E0; /* Grey background for individual posts */
-            border-radius: 5px;
-        }
-        .green-hr {
-            border: 5px solid green;
-        }
-        .post-media {
-            width: 100%;
-            height: auto;
-            object-fit: contain;
-        }
-        .post-media video {
-            width: 100%;
-            height: auto;
-        }
-        .reply {
-            margin-bottom: 10px;
-            padding: 10px;
-            background: #D0D0D0; /* Slightly darker grey for replies */
-            border-radius: 5px;
-        }
-        form textarea, form button, form input[type="text"] {
-            width: 100%;
-            margin-bottom: 10px;
-        }
-        form textarea {
-            height: 100px;
-        }
-        form button {
-            padding: 10px;
-            background: green;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .back-link {
-            display: block;
-            margin-bottom: 20px;
-            color: blue;
-            text-decoration: none;
-        }
-    </style>
+
+        // Change theme and save to cookies
+        themeSelect.addEventListener("change", function () {
+            const selectedTheme = this.value;
+            themeStylesheet.href = "themes/" + selectedTheme;
+            document.cookie = "selectedTheme=" + selectedTheme + "; path=/; max-age=31536000"; // 1 year
+        });
+    });
+</script>
 </head>
 <body>
     <div class="message-board">
@@ -186,5 +158,7 @@ $replies = $db->query('SELECT * FROM replies WHERE post_id = ' . $post_id . ' OR
         }
         ?>
     </div>
+   <br>
+</div>
 </body>
 </html>
