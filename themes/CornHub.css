@@ -1,0 +1,221 @@
+/* Base reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 62.5%; /* 1rem = 10px */
+    scroll-behavior: smooth;
+}
+
+body {
+    background-color: #000000; /* Black background */
+    font-family: 'Helvetica Bold';
+    color: #FFA500; /* Orange text */
+    line-height: 1.6;
+    font-size: 1.6rem; /* 16px */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Message board container */
+.message-board {
+    width: 95%;
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #1A1A1A; /* Dark background for message board */
+    border-radius: 8px;
+    border: 6px double #FFA500; /* Orange border */
+    box-shadow: 0 0 10px rgba(255, 165, 0, 0.5); /* Orange glow */
+}
+
+/* Form container */
+.form-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.form-container form {
+    width: 100%;
+    max-width: 600px;
+    display: none;
+    background: #000000; /* Black background for form */
+    padding: 2rem;
+    border-radius: 8px;
+    border: 6px double #FFA500; /* Orange border */
+    box-shadow: 0 0 10px rgba(255, 165, 0, 0.5); /* Orange glow */
+    color: #FFA500; /* Orange text in the form */
+}
+
+/* Post grid */
+.post-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 2rem 0;
+}
+
+.post {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #1A1A1A; /* Dark background for posts */
+    border-radius: 5px;
+    border: 3px solid #FFA500; /* Orange border for posts */
+    position: relative;
+}
+
+/* Media styling */
+.post-media {
+    max-width: 100%;
+    height: auto;
+    cursor: pointer;
+    object-fit: contain;
+    border: 2px solid #FFA500; /* Orange border for media */
+}
+
+.post-media.expanded {
+    max-width: 100%;
+    width: auto;
+    height: auto;
+}
+
+/* Form elements */
+form input[type="text"],
+form textarea,
+form input[type="file"],
+form button {
+    width: 100%;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    font-size: 1.4rem;
+    background: #000000; /* Black background for inputs */
+    color: #FFA500; /* Orange text for form elements */
+    border: 2px solid #FFA500; /* Orange border */
+}
+
+form textarea {
+    height: 15rem;
+    resize: vertical;
+}
+
+form button {
+    background: #FFA500; /* Orange button */
+    color: #000000; /* Black text on button */
+    font-weight: bold;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+form button:hover {
+    background: #FFB84D; /* Light orange on hover */
+}
+
+/* Buttons */
+.toggle-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.toggle-buttons button,
+.pagination a,
+.reply-button {
+    padding: 1rem 2rem;
+    font-size: 1.4rem;
+    min-width: 120px;
+    background: #FFA500; /* Orange button */
+    color: #000000; /* Black text */
+    text-decoration: none;
+    border: 2px solid #FFA500; /* Orange border */
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.toggle-buttons button:hover,
+.pagination a:hover,
+.reply-button:hover {
+    background: #FFB84D; /* Light orange on hover */
+}
+
+.toggle-buttons .close-button {
+    background: #FFA500; /* Orange close button */
+    display: none;
+}
+
+/* Links */
+a {
+    color: #FFA500; /* Orange links */
+    text-decoration: none;
+}
+
+a:hover {
+    background: #FFA500; /* Orange background on hover */
+    color: #000000; /* Black text on hover */
+}
+
+/* Pagination */
+.pagination {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.pagination a.active {
+    background: #FFB84D; /* Light orange for active pagination */
+    color: #000000; /* Black text for active page */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .message-board {
+        width: 100%;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        margin: 0 auto;
+        padding: 1rem;
+    }
+
+    .post {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+    }
+
+    .post-grid {
+        grid-template-columns: 1fr;
+    }
+
+    form textarea {
+        height: 10rem;
+    }
+
+    .reply-button {
+        position: relative;
+        top: auto;
+        right: auto;
+        margin-top: 1rem;
+        display: block;
+    }
+}
+
+@media (max-width: 480px) {
+    html {
+        font-size: 55%;
+    }
+
+    .toggle-buttons button,
+    .pagination a {
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+
+    .form-container form {
+        padding: 1rem;
+    }
+}

@@ -1,0 +1,258 @@
+/* Base reset */  
+* {  
+    margin: 0;  
+    padding: 0;  
+    box-sizing: border-box;  
+}  
+  
+html {  
+    font-size: 62.5%; /* 1rem = 10px */  
+    scroll-behavior: smooth;  
+}  
+  
+body {  
+    background-color: #FFFFFF; /* Light background */  
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* Modern, clean font */  
+    color: #333333;  
+    line-height: 1.6;  
+    font-size: 1.6rem; /* 16px */  
+    min-height: 100vh;  
+    display: flex;  
+    flex-direction: column;  
+}  
+  
+/* Message board container */  
+.message-board {  
+    width: 95%;  
+    max-width: 1200px;  
+    margin: 2rem auto;  
+    padding: 2rem;  
+    background: #F9F9F9; /* Light grey background */  
+    border-radius: 8px;  
+    border: 1px solid #E1E1E1; /* Subtle border */  
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);  
+}  
+  
+/* Form container */  
+.form-container {  
+    display: flex;  
+    justify-content: center;  
+    margin-bottom: 2rem;  
+}  
+  
+.form-container form {  
+    width: 100%;  
+    max-width: 600px;  
+    display: none;  
+    background: #FFFFFF;  
+    padding: 2rem;  
+    border-radius: 8px;  
+    border: 1px solid #E1E1E1;  
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);  
+    color: #333333;  
+}  
+  
+/* Post grid */  
+.post-grid {  
+    display: grid;  
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));  
+    gap: 2rem;  
+    padding: 2rem 0;  
+}  
+  
+.post {  
+    margin-bottom: 2rem;  
+    padding: 1.5rem;  
+    background: #FFFFFF;  
+    border-radius: 5px;  
+    border: 1px solid #E1E1E1;  
+    position: relative;  
+}  
+  
+/* Media styling */  
+.post-media {  
+    max-width: 100%;  
+    height: auto;  
+    cursor: pointer;  
+    object-fit: contain;  
+    border: 1px solid #E1E1E1;  
+}  
+  
+.post-media.expanded {  
+    max-width: 100%;  
+    width: auto;  
+    height: auto;  
+}  
+  
+/* Form elements */  
+form input[type="text"],  
+form textarea,  
+form input[type="file"],  
+form button {  
+    width: 100%;  
+    margin-bottom: 1rem;  
+    padding: 1rem;  
+    font-size: 1.4rem;  
+    background: #FFFFFF;  
+    color: #333333;  
+    border: 1px solid #E1E1E1;  
+}  
+  
+form textarea {  
+    height: 15rem;  
+    resize: vertical;  
+}  
+  
+/* Bilibili-style buttons */  
+form button {  
+    background: linear-gradient(to bottom, #FF6699 0%, #FF3366 100%); /* Bilibili pink gradient */  
+    color: #FFFFFF; /* White text for contrast */  
+    font-weight: bold;  
+    border-radius: 5px;  
+    cursor: pointer;  
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.2);  
+    border: none;  
+}  
+  
+form button:hover {  
+    background: linear-gradient(to bottom, #FF3366 0%, #FF0044 100%);  
+}  
+  
+form button:active {  
+    background: linear-gradient(to bottom, #FF0044 0%, #CC0033 100%); /* Darker pink when pressed */  
+    color: #FFFFFF; /* Ensure text remains white */
+    text-shadow: none; /* Clear text shadow */
+}  
+  
+/* Buttons */  
+.toggle-buttons {  
+    display: flex;  
+    flex-wrap: wrap;  
+    gap: 1rem;  
+    justify-content: center;  
+    margin-bottom: 2rem;  
+}  
+  
+.toggle-buttons button,  
+.pagination a,  
+.reply-button {  
+    padding: 1rem 2rem;  
+    font-size: 1.4rem;  
+    min-width: 120px;  
+    background: linear-gradient(to bottom, #00A1D6 0%, #008CBA 100%); /* Bilibili blue gradient */  
+    color: #FFFFFF; /* White text for contrast */  
+    text-decoration: none;  
+    border: none;  
+    border-radius: 5px;  
+    cursor: pointer;  
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.2);  
+}  
+  
+.toggle-buttons button:hover,  
+.pagination a:hover,  
+.reply-button:hover {  
+    background: linear-gradient(to bottom, #008CBA 0%, #007AA3 100%);  
+    color: #FFFFFF; /* Ensure text stays white */
+}  
+  
+.toggle-buttons button:active,  
+.pagination a:active,  
+.reply-button:active {  
+    background: linear-gradient(to bottom, #FF0044 0%, #CC0033 100%); /* Darker pink when pressed */  
+    color: #FFFFFF; /* Ensure text remains white */
+    text-shadow: none; /* Clear text shadow */
+}  
+  
+/* Reply button specific styling */  
+.reply-button {  
+    background: linear-gradient(to bottom, #FF6699 0%, #FF3366 100%); /* Bilibili pink gradient */  
+    color: #FFFFFF; /* White text for contrast */  
+}  
+  
+.reply-button:hover {  
+    background: linear-gradient(to bottom, #FF3366 0%, #FF0044 100%);  
+}  
+  
+.reply-button:active {  
+    background: linear-gradient(to bottom, #FF0044 0%, #CC0033 100%); /* Darker pink when pressed */  
+    color: #FFFFFF; /* Ensure text remains white */
+    box-shadow: none; /* Remove box-shadow when pressed */
+}  
+  
+/* Close button */  
+.toggle-buttons .close-button {  
+    background: linear-gradient(to bottom, #FF6699 0%, #FF3366 100%); /* Bilibili pink gradient */  
+    display: none;  
+}  
+  
+/* Links */  
+a {  
+    color: #00A1D6; /* Bilibili blue */  
+    text-decoration: none;  
+}  
+  
+a:hover {  
+    color: #FF6699; /* Bilibili pink */  
+    text-shadow: 0 0 8px rgba(255, 102, 153, 0.3);  
+}  
+  
+/* Pagination */  
+.pagination {  
+    text-align: center;  
+    margin-top: 2rem;  
+}  
+  
+.pagination a.active {  
+    background: #FF3366;  
+    color: #FFFFFF;  
+    text-shadow: 0 0 5px rgba(0, 161, 214, 0.3);  
+}  
+  
+/* Responsive adjustments */  
+@media (max-width: 768px) {  
+    .message-board {  
+        width: 100%;  
+        border-radius: 0;  
+        border-left: none;  
+        border-right: none;  
+        margin: 0 auto;  
+        padding: 1rem;  
+    }  
+  
+    .post {  
+        margin-bottom: 1.5rem;  
+        padding: 1rem;  
+    }  
+  
+    .post-grid {  
+        grid-template-columns: 1fr;  
+    }  
+  
+    form textarea {  
+        height: 10rem;  
+    }  
+  
+    .reply-button {  
+        position: relative;  
+        top: auto;  
+        right: auto;  
+        margin-top: 1rem;  
+        display: block;  
+    }  
+}  
+  
+@media (max-width: 480px) {  
+    html {  
+        font-size: 55%;  
+    }  
+  
+    .toggle-buttons button,  
+    .pagination a {  
+        width: 100%;  
+        margin: 0.5rem 0;  
+    }  
+  
+    .form-container form {  
+        padding: 1rem;  
+    }  
+}
