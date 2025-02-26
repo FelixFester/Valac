@@ -1,0 +1,16 @@
+{
+  "short_name": "Your board name",
+  "name": "Full name of your board",
+  "icons": [
+    {
+      "src": "/icons/valac.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#ffffff"
+}
