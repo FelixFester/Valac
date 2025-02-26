@@ -1,4 +1,5 @@
 <?php
+
 session_start([
     'cookie_lifetime' => 86400,
     'cookie_httponly' => true,
@@ -12,7 +13,7 @@ if (!isset($_SESSION['initiated'])) {
     $_SESSION['initiated'] = true;
 }
 
-$db = new SQLite3('message_board.db');
+$db = new SQLite3('posts.db');
 
 // Create posts table if it doesn't exist
 $db->exec('CREATE TABLE IF NOT EXISTS posts (
@@ -80,12 +81,16 @@ function renderPost($id, $title, $message, $mediaPath) {
         }
     }
 
+    // Decode HTML entities in title and message
+    $decodedTitle = html_entity_decode($title, ENT_QUOTES, 'UTF-8');
+    $decodedMessage = html_entity_decode($message, ENT_QUOTES, 'UTF-8');
+
     return '
         <div class="post">
             <hr class="green-hr">
             <div class="post-media-container">' . $mediaTag . '</div>
-            <h2>' . htmlentities($title) . '</h2>
-            <p style="word-wrap: break-word; overflow-wrap: break-word;">' . nl2br(htmlentities($message)) . '</p>
+            <h2>' . htmlspecialchars($decodedTitle) . '</h2>
+            <p style="word-wrap: break-word; overflow-wrap: break-word;">' . nl2br(htmlspecialchars($decodedMessage)) . '</p>
             <a class="reply-button" href="reply.php?post_id=' . $id . '">[reply-' . $replyCount . ']</a>
         </div>
     ';
@@ -118,10 +123,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die('Title and message are required.');
     }
 
-    if (empty($captcha) || $captcha !== $_SESSION['captcha_text']) {
-        die('Invalid CAPTCHA.');
+    // Initialize failed attempts counter if not set
+    if (!isset($_SESSION['captcha_failed_attempts'])) {
+        $_SESSION['captcha_failed_attempts'] = 0;
     }
 
+    // Validate CAPTCHA
+    if (empty($captcha) || $captcha !== $_SESSION['captcha_text']) {
+        $_SESSION['captcha_failed_attempts']++;
+
+        // Display different messages based on the number of failed attempts
+        if ($_SESSION['captcha_failed_attempts'] >= 3) {
+            die('Too many failed CAPTCHA attempts. Please try again later.');
+        } else {
+            die('Invalid CAPTCHA. Please try again.');
+        }
+    }
+
+    // Reset failed attempts counter on successful CAPTCHA
+    $_SESSION['captcha_failed_attempts'] = 0;
+
+    // Handle file upload
     $media = $_FILES['media'];
     $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/webm', 'video/mp4'];
     if ($media['size'] > 0 && !in_array($media['type'], $allowed_types)) {
@@ -139,6 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         move_uploaded_file($media['tmp_name'], $mediaPath);
     }
 
+    // Insert post into the database
     $stmt = $db->prepare('INSERT INTO posts (title, message, media) VALUES (:title, :message, :media)');
     $stmt->bindValue(':title', $title, SQLITE3_TEXT);
     $stmt->bindValue(':message', $message, SQLITE3_TEXT);
@@ -167,125 +190,54 @@ $offset = ($page - 1) * $postsPerPage;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Message Board</title>
-    <style>
-        /* Add basic styling here */
-        body {
-            background-color: #B0C4DE; /* Darker blue shade */
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
+    <link rel="manifest" href="/manifest.json">
+    <title>Your Board</title>
+<?php
+$themesDir = "themes/";
+$themes = array_diff(scandir($themesDir), array('..', '.'));
+?>
+
+<!-- Apply selected theme -->
+<link id="themeStylesheet" rel="stylesheet" type="text/css" href="themes/Clara Valac.css">
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const themeSelect = document.getElementById("themeSelect");
+        const themeStylesheet = document.getElementById("themeStylesheet");
+
+        // Load theme from cookies
+        const savedTheme = document.cookie.replace(/(?:(?:^|.*;\s*)selectedTheme\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+        if (savedTheme) {
+            themeStylesheet.href = "themes/" + savedTheme;
+            themeSelect.value = savedTheme;
         }
-        .message-board {
-            width: 90%;
-            max-width: 1200px;
-            margin: auto;
-            padding: 20px;
-            background: #F0F0F0; /* Light grey background for posts */
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .form-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        .form-container form {
-            width: 100%;
-            max-width: 600px;
-            display: none; /* Hide the form initially */
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .post {
-            margin-bottom: 20px;
-            padding: 10px;
-            background: #E0E0E0; /* Grey background for individual posts */
-            border-radius: 5px;
-            position: relative;
-        }
-        .green-hr {
-            border: 5px solid green;
-        }
-        .post-media {
-            width: 200px;
-            height: auto;
-            cursor: pointer;
-            object-fit: contain;
-        }
-        .post-media.expanded {
-            width: 100%;
-            max-width: 100%;
-            height: auto;
-        }
-        .post-media video {
-            width: 100%;
-            height: auto;
-        }
-        form input[type="text"], form textarea, form input[type="file"], form input[type="text"], form button {
-            width: 100%;
-            margin-bottom: 10px;
-        }
-        form textarea {
-            height: 100px;
-        }
-        form button {
-            padding: 10px;
-            background: green;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .toggle-buttons {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .toggle-buttons button {
-            padding: 10px;
-            background: green;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .toggle-buttons .close-button {
-            background: red;
-            display: none; /* Hide the close button initially */
-        }
-        .reply-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: blue;
-            color: white;
-            padding: 5px 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        .pagination {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .pagination a {
-            margin: 0 5px;
-            padding: 10px 15px;
-            background: #ddd;
-            color: #000;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-        .pagination a.active {
-            background: #333;
-            color: #fff;
-        }
-    </style>
+
+        // Change theme and save to cookies
+        themeSelect.addEventListener("change", function () {
+            const selectedTheme = this.value;
+            themeStylesheet.href = "themes/" + selectedTheme;
+            document.cookie = "selectedTheme=" + selectedTheme + "; path=/; max-age=31536000"; // 1 year
+        });
+    });
+</script>
 </head>
 <body>
+<br>
+<center><h1><b>FLChan</b></h1>
+<div id="randomText"></div><script src="scripts/randomstuff.js"></script><br>
+Enter text.<br>
+<script src="scripts/yummycooki.js"></script>
+   <br>
+   <!-- Theme Switcher -->
+<div class="theme-switcher">
+    <label for="themeSelect"><b>Themes:</b></label>
+    <select id="themeSelect">
+        <?php foreach ($themes as $theme): ?>
+            <?php if (pathinfo($theme, PATHINFO_EXTENSION) === 'css'): ?>
+                <option value="<?php echo htmlspecialchars($theme); ?>"><?php echo pathinfo($theme, PATHINFO_FILENAME); ?></option>
+            <?php endif; ?>
+        <?php endforeach; ?>
+    </select>  <br> <a href="#" onclick="clearCookies(); return false;">Clear Cookies</a> // <a href="#">Your link</a><br><br></center>
     <div class="message-board">
         <div class="toggle-buttons">
             <button class="new-post-button">[NEW POST]</button>
@@ -294,11 +246,11 @@ $offset = ($page - 1) * $postsPerPage;
         <div class="form-container">
             <form id="postForm" enctype="multipart/form-data" method="post">
                 <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
-                <input type="text" name="title" placeholder="Title" maxlength="20" required><br>
+                <input type="text" name="title" placeholder="Title (or enter name)" maxlength="20" required><br>
                 <textarea name="message" placeholder="Message" maxlength="100000" required></textarea><br>
                 <input type="file" name="media" accept="image/jpeg, image/png, image/gif, image/webp, video/webm, video/mp4"><br>
                 <img src="simple_captcha.php" alt="CAPTCHA Image"><br>
-                <input type="text" name="captcha" placeholder="Enter CAPTCHA" required><br>
+                <input type="text" name="captcha" placeholder="Are you robot?" required><br>
                 <button type="submit">Post</button>
             </form>
         </div>
@@ -355,5 +307,9 @@ $offset = ($page - 1) * $postsPerPage;
             });
         });
     </script>
+   <br>
+(A place for additional links and all this stuff that you can use or not)
+ <br>
+</div>
 </body>
 </html>
