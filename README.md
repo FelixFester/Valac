@@ -1,4 +1,4 @@
-lightweight flat-file PHP imageboard engine named after Clara Valac. Fork of Yotsuba (not this one that is very popular).
+Lightweight flat-file PHP imageboard engine named after Clara Valac. Fork of Yotsuba (not this one that is very popular).
 
 ## Changes
 - Mod panel now is Admin Panel.
