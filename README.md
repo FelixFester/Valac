@@ -1,7 +1,8 @@
 Lightweight flat-file PHP imageboard engine named after Clara Valac. Fork of Yotsuba (not this one that is very popular).
 
-## Changes
+## Differences from Yotsuba
 - Mod panel now is Admin Panel.
+- Ability to delete cookies from your website. Can be useful for certain websites with Cloudflare caching.
 - In admin panel it's possible to delete post (it adds text like "post deleted by admin" to both title and description) or delete post completely. Unlike in Yotsuba, both buttons including deletion of images (didn't tested different type of media, but it should work too).
 - Comes with ready-to-use .json config for creating PWA app out of your website.
 - Almost fixed bug when error message about wrong captcha has been shown many times if captcha was failed many times. Soon would be solved at 100%.
