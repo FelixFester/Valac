@@ -15,4 +15,4 @@ lightweight flat-file PHP imageboard engine named after Clara Valac. Fork of Yot
 
 ---
 
-*Soon would be available**
+**Soon would be available**
