@@ -223,7 +223,7 @@ $themes = array_diff(scandir($themesDir), array('..', '.'));
 </head>
 <body>
 <br>
-<center><h1><b>FLChan</b></h1>
+<center><h1><b>Your board name</b></h1>
 <div id="randomText"></div><script src="scripts/randomstuff.js"></script><br>
 Enter text.<br>
 <script src="scripts/yummycooki.js"></script>
