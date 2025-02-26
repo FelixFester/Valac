@@ -9,6 +9,10 @@ lightweight flat-file PHP imageboard engine named after Clara Valac. Fork of Yot
 - Website name. In code was added title just as on usual big imageboards.
 - Theme changer near website name. Parsing all existing .css files from folder, works for all pages except admin panel (yet).
 
+## Reasons to use it
+- It's super lightweight! All what it's using is SQLite database.
+- It's modern and can be used on PHP8 and more newer versions.
+
 ---
 
 *Soon would be available**
